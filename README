@@ -1,0 +1,52 @@
+WWW-Rediff-iShare
+
+Get Audio and Video Streaming url form Rediff iShare and download your favourite music.
+I am really wondering how i wrote this module,
+actually i used to listen songs from rediff iShare, some of the songs i like very much, but no way to download.
+Now cheers....
+i wrote this module.
+you can search your favourite music or video
+my @streamdata = $is->get_stream_url('movie song name','stream-type');
+then get your favourite music id and download it
+$self->download('music-id','stream-type');
+
+
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc WWW::Rediff::iShare
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=WWW-Rediff-iShare
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/WWW-Rediff-iShare
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/WWW-Rediff-iShare
+
+    Search CPAN
+        http://search.cpan.org/dist/WWW-Rediff-iShare/
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2008 Rakesh Kumar Shardiwal
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
