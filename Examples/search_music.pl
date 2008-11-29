@@ -3,19 +3,19 @@
 use CGI;
 use WWW::Rediff::iShare;
 
-my $self = WWW::Rediff::iShare->new();
+my $iShare = WWW::Rediff::iShare->new();
 
-my $music_list = $self->get_stream_url('Karzz','video');
-
-for my $one (@$music_list)
+my $stream_data = $iShare->get_stream_url('Jaane Tu Mera','audio');
+if($stream_data)
 {
-   print "Title : ",$one->{'title'},"\n";
-   print "Url : ",$one->{'stream_url'},"\n";
-   print "File ID : ",$one->{'file_id'},"\n";
-   print "\n";
-   $i++;
+	for my $a (@{$stream_data})
+	{
+	   print "Title : ", $a->{'title'},"\n";
+	   print "Url : ", $a->{'stream_url'},"\n";
+	   print "file_id : ", $a->{'file_id'},"\n\n";
+	}
 }
 
 #### To download your song
 
-#$self->download('513151','video');
+#$iShare->download('518188','audio');
