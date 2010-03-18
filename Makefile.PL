@@ -13,6 +13,10 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+	'HTML::TagParser' => 0,
+	'LWP::Simple' => 0,
+	'WWW::Mechanize' => 0,
+	'Data::Dumper' => 0
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'WWW-Rediff-iShare-*' },

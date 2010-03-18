@@ -2,194 +2,12 @@ package WWW::Rediff::iShare;
 
 use strict;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use Data::Dumper; 
 use WWW::Mechanize;
 use HTML::TagParser;
 use LWP::Simple;
-
-use base qw(Exporter);
-our @EXPORT = qw(
-			new
-			get_stream_url
-			download
-		);
-
-sub new
-{
-	my ($class, %args) = @_;
-	my $query_link = 'http://ishare.rediff.com';
-	my $self = {
-		base_url => $query_link,
-		%args,
-	};
-	bless $self, $class or die "Can't bless $class: $!";
-	return $self;
-}
-
-sub get_stream_url
-{
-	my ($self, $term, $type) = @_;
-	
-	my $base_url = $self->{'base_url'};
-		$type = validate($type);
-	
-	$term =~ s/ /%20/g; # replacing non-breaking spaces with %20 in search term 
-	#Check the number of record
-	my $record_found = $self->count_records($term, $type);
-	msg("$record_found Record Found");
-
-	my $query_link = $base_url."/searchresult.php?query=$term&type=$type&tag=&page=1&perpage=150";
-	my $mech       = WWW::Mechanize->new();
-	$mech->get($query_link);
-
-	my $page_contents = $mech->content();
-	if ($page_contents =~ /0 results found/ig)
-	{
-		dienice('No entries found with your query !');
-	}
-
-	my @audio_music;
-	my $html      = HTML::TagParser->new($page_contents);
-	my @tag_lists = $html->getElementsByTagName("a");
-	foreach my $each_tag (@tag_lists)
-	{
-		my $tagname = $each_tag->tagName;
-		my $attr    = $each_tag->attributes;
-		my $text    = $each_tag->innerText;
-		foreach my $key (sort keys %$attr)
-		{
-			if ($attr->{'title'} =~ m/Add to collection/)
-			{
-				if ($key ne 'title')
-				{
-					my $link          = $attr->{$key};
-					my $link_text     = substr($link, 25);
-					$link_text =~ s/'//g;
-					my @link_elements = split(/,/,$link_text);
-					
-					my $file_id       = $link_elements[0];
-					my $title         = $link_elements[1];
-					my $video_icon    = $link_elements[2];
-					$title =~ s/%20%20//; # Replace %20%20 with spaces in search term
-					$title =~ s/%20/-/g; # Replace %20 with - in search term
-					
-					my $stream_url =
-						($type eq 'video')
-						? $base_url . '/filevideo-' . $title . '-id-' . $file_id . '.php'
-						: $base_url . 'filemusic.php?id=' . $file_id;
-						
-					my $download_url =
-						($type eq 'video')
-						? $base_url . 'embedplayer_config.php?content_id=' . $file_id
-						: $base_url . 'embedaudio_config.php?audioid=' . $file_id;
-						
-					push @audio_music,
-						{
-						  stream_url => $stream_url,
-						  file_id    => $file_id,
-						  title      => $title,
-						  video_icon => $video_icon
-						};
-				}
-			}
-		}
-	}
-	return \@audio_music;
-}
-
-sub download
-{
-	my ($self, $file_no, $type) = @_;
-	
-	my $base_url = $self->{'base_url'};
-	$type = validate($type);
-
-	my $download_url =
-		($type eq 'video')
-		? $base_url . '/embedplayer_config.php?content_id=' . $file_no
-		: $base_url . '/embedaudio_config.php?audioid=' . $file_no;
-
-	my $lookup_key = ($type eq 'video') ? 'video': 'track' ;
-
-	getstore($download_url, $file_no . '.xml');
-	my $filesize = -s "$file_no.xml";
-	if ($filesize > 0)
-	{
-		open (FILE, $file_no . '.xml') or die "Can not open temp file !";
-		my @config_file = <FILE>;
-		close (FILE);
-		
-		my $config_data = join ('', @config_file);			
-		unlink($file_no . '.xml');
-	
-		$config_data =~ /^.*?$lookup_key\s*path\s*=\s*["'](.*?)["']/xms;
-		my $download_this_url = $1;
-
-		$download_this_url eq ''
-			? dienice ("Seems some problem ! can not download file") :
-			  msg("Downloading... please wait...");
-		
-		getstore($download_this_url, $file_no.'.flv');
-		msg("Download done : $file_no.flv ");
-	}
-	else
-	{
-		dienice('oops !! file id seems incorrect ..');
-	}
-}
-
-sub count_records
-{
-	my ($self, $term, $type) = @_;
-	my $base_url = $self->{'base_url'};
-	$term =~ s/%20/ /; # Replace %20 with spaces in search term
-	my $query_link = $base_url."/searchresult.php?query=$term&type=$type&tag=&page=1&perpage=150";
-	my $mech      = WWW::Mechanize->new();
-	$mech->get($query_link);
-	my $search_result = $mech->content();
-
-	my $result_found;
-	if ($type eq 'music')
-	{
-		$search_result =~ m/Music \((\d+)\)/ig;
-		$result_found = $1;
-	}
-	elsif ($type eq 'video')
-	{
-		$search_result =~ m/Video \((\d+)\)/ig;
-		$result_found = $1;
-	}
-	return $result_found;
-}
-
-sub validate {
-    my($type) = @_;
-    $type =~ tr/[A-Z]/[a-z]/; # change to lowercase
-
-    if($type && $type ne 'music' && $type ne 'video' && $type ne 'audio')
-    {
-	dienice('Not a valid music type');
-    }
-    if($type eq 'audio')
-    {
-	$type = 'music';
-    }
-    return $type;
-}
-
-sub dienice {
-    my($msg) = @_;
-    print "Error\t: $msg \n";
-    exit;
-}
-
-sub msg {
-    my($msg) = @_;
-    print "Info\t: $msg \n";
-    return;
-}
 
 =head1 NAME
 
@@ -209,14 +27,195 @@ WWW::Rediff::iShare - get ishare.rediff.com audio and video stream URL and downl
     {
 		for my $a (@{$stream_data})
 		{
-		   print "Title : ", $a->{'title'},"\n";
-		   print "Url : ", $a->{'stream_url'},"\n";
-		   print "file_id : ", $a->{'file_id'},"\n\n";
+		   print Dumper$a;
 		}
     }
 
     ## to download flv file
     $iShare->download('file_id','stream-type');
+
+
+Output would be like this :
+$VAR1 = {
+          'stream_url' => 'http://ishare.rediff.com/audio_config_REST.php?audioid=10052411&autoplay=true',
+          'video_icon' => 'http://datastore.rediff.com/briefcase/666659675F5C6B27636E645E7064/SHFC_1-2557-11.mp3-0001.png',
+          'embedded_code' => '
+				<embed
+						width="100%"
+						height="322"
+						wmode="transparent"
+						type=\'"application/x-shockwave-flash"
+						allowfullscreen="true"
+						allowscriptaccess="always"
+						name="aplayer"
+						flashvars="audioURL=http://ishare.rediff.com/audio_config_REST.php?audioid=10052411&autoplay=true"
+						src="http://ishare.rediff.com/images/saplayer2101.swf"/>',
+          'download_path' => 'http://datastore.rediff.com/briefcase/666659675F5C6B27636E645E7064/SHFC_1-2557-11.mp3.flv',
+          'title' => 'Tu Hi Mera Jaanam Jani Tu Hi Mera Pranam',
+          'file_id' => '10052411'
+        };
+
+=head2
+	my $iShare      = WWW::Rediff::iShare->new();
+=cut
+sub new
+{
+	my ($class, %args) = @_;
+	my $query_link = 'http://ishare.rediff.com/';
+	my $self = {
+		base_url => $query_link,
+		%args,
+	};
+	bless $self, $class or die "Can't bless $class: $!";
+	return $self;
+}
+
+=head2
+    my $stream_data = $iShare->get_stream_url('song title','stream_type');
+=cut
+sub get_stream_url
+{
+	my ($self, $term, $type) = @_;
+	
+	my $base_url = $self->{'base_url'};
+		$type = validate($type);
+	
+	$term =~ s/ /%20/g;
+
+	my $query_link = $base_url."$type/$term";
+	my $mech       = WWW::Mechanize->new();
+	$mech->get($query_link);
+
+	my $page_contents = $mech->content();
+
+	my $audio_music;
+	my $html      = HTML::TagParser->new($page_contents);
+	my @tag_lists = $html->getElementsByTagName("a");
+	foreach my $each_tag (@tag_lists)
+	{
+		my $tagname = $each_tag->tagName;
+		my $attr    = $each_tag->attributes;
+		my $text    = $each_tag->innerText;
+		foreach my $key (sort keys %$attr)
+		{
+			my $checkthis = $base_url.$type."/";
+			if ($attr->{'href'} =~ m/$checkthis/)
+			{
+				my $link 	= $attr->{'href'};
+				my $title 	= $attr->{'title'};
+				$link =~/\/(\d+)$/ig;
+				my $file_id = $1;
+
+				my $stream_url =
+					($type eq 'video')
+					? $base_url."embedplayer_config_REST.php?content_id=$file_id&x=3"
+					: $base_url."audio_config_REST.php?audioid=$file_id&autoplay=true";
+
+				my $player_type = ($type eq 'video') ? "splayer": "aplayer";
+				my $player_url_type = ($type eq 'video') ? "videoURL": "audioURL";
+				my $player_source =
+					($type eq 'video')
+					? "http://ishare.rediff.com/images/svplayer_ad_20100212_2.swf" :
+					"http://ishare.rediff.com/images/saplayer2101.swf";
+			
+				my $player_html = "
+						<embed
+							width=\"100%\"
+							height=\"322\"
+							wmode=\"transparent\"
+							type='\"application/x-shockwave-flash\"
+							allowfullscreen=\"true\"
+							allowscriptaccess=\"always\"
+							name=\"$player_type\"
+							flashvars=\"$player_url_type=$stream_url\"
+							src=\"$player_source\"/>";
+
+				my $file_contents = get($stream_url);
+					$file_contents =~  /<(video|track) path=?'(.*.flv)'/ig;
+
+				my $download_path = $2;
+				my $video_thumbnail_path = $download_path;
+					$video_thumbnail_path =~s/.flv/-0001.png/;
+
+				push @$audio_music,
+				{
+					stream_url => $stream_url,
+					file_id    => $file_id,
+					title      => $title,
+					video_icon => $video_thumbnail_path,
+					download_path => $download_path,
+					embedded_code => $player_html,
+				}if($file_id && $title);
+			}
+		}
+	}
+	return $audio_music;
+}
+
+=head2
+=cut
+sub download
+{
+	my ($self, $file_id, $type) = @_;
+	
+	my $base_url = $self->{'base_url'};
+	$type = validate($type);
+
+	my $download_url =
+		($type eq 'video')
+		? $base_url."embedplayer_config_REST.php?content_id=$file_id&x=3"
+		: $base_url."audio_config_REST.php?audioid=$file_id&autoplay=true";
+
+	my $file_contents = get($download_url);
+		$file_contents =~  /<(video|track) path=?'(.*.flv)'/ig;
+	my $download_path = $2;
+
+	if ($download_path)
+	{
+	    msg("Downloading... please wait...");
+		getstore($download_path, $file_id.'.flv');
+		msg("Download done : $file_id.flv ");
+	}
+	else
+	{
+		dienice('oops !! file id seems incorrect ..');
+	}
+}
+
+=head2
+=cut
+sub validate {
+    my($type) = @_;
+    $type =~ tr/[A-Z]/[a-z]/; # change to lowercase
+
+    if($type && $type ne 'music' && $type ne 'video' && $type ne 'audio')
+    {
+	dienice('Not a valid music type');
+    }
+    if($type eq 'audio')
+    {
+	$type = 'music';
+    }
+    return $type;
+}
+
+=head2
+=cut
+sub dienice {
+    my($msg) = @_;
+    print "Error\t: $msg \n";
+    exit;
+}
+
+=head2
+=cut
+sub msg {
+    my($msg) = @_;
+    print "Info\t: $msg \n";
+    return;
+}
+
+
 
 =head1 DESCRIPTION
 
