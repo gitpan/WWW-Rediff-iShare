@@ -1,18 +1,31 @@
 --- #YAML:1.0
-name:                WWW-Rediff-iShare
-version:             0.03
-abstract:            get ishare.rediff.com audio and video stream URL and download it to your system
-license:             perl
-author:              
+name:               WWW-Rediff-iShare
+version:            0.04
+abstract:           get ishare.rediff.com audio and video stream URL and download it to your system
+author:
     - Rakesh Kumar Shardiwal <rakesh@cpan.org>
-generated_by:        ExtUtils::MakeMaker version 6.42
-distribution_type:   module
-requires:     
-    Data::Dumper:                  0
-    HTML::TagParser:               0
-    LWP::Simple:                   0
-    Test::More:                    0
-    WWW::Mechanize:                0
+license:            perl
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Data::Dumper:         2.126
+    FLV::ToMP3:           0.24
+    HTML::TagParser:      0.16
+    LWP::Simple:          5.835
+    String::Random:       0.22
+    Test::More:           0.96
+    Test::Pod::Coverage:  1.08
+    URI::Encode:          0.02
+    URI::Fetch:           0.08
+    XML::Simple:          2.18
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.55_02
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
-    version: 1.3
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

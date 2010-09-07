@@ -6,9 +6,9 @@ actually i used to listen songs from rediff iShare, some of the songs i like ver
 Now cheers....
 i wrote this module.
 you can search your favourite music or video
-my @streamdata = $is->get_stream_url('movie song name','stream-type');
+my @streamdata = $is->search('movie song name','stream-type');
 then get your favourite music id and download it
-$self->download('music-id','stream-type');
+$self->download('music-id');
 
 
 
