@@ -15,7 +15,6 @@ WriteMakefile(
         'Test::More'          => 0.96,
         'HTML::TagParser'     => 0.16,
         'Data::Dumper'        => 2.126,
-        'LWP::Simple'         => 5.835,
         'URI::Encode'         => 0.02,
         'URI::Fetch'          => 0.08,
         'XML::Simple'         => 2.18,

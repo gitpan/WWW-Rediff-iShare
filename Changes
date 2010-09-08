@@ -4,3 +4,5 @@ Revision history for WWW-Rediff-iShare
         First version, released on an unsuspecting world.
 0.04    07-Sep-2010/5:00PM
         Improvements, code cleanup.
+0.05    08-Sep-2010/9:00AM
+        Removed 'LWP::Simple' from pre require list

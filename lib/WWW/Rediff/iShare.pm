@@ -3,7 +3,7 @@ package WWW::Rediff::iShare;
 use strict;
 
 use vars qw( $VERSION );
-$VERSION = "0.04";
+$VERSION = "0.05";
 
 use HTML::TagParser;
 use LWP::Simple;
@@ -233,20 +233,19 @@ WWW::Rediff::iShare - get ishare.rediff.com audio and video stream URL and downl
     ## for audio : audio
     ## for video : video
     
-    use WWW::Rediff::iShare;
-    use Data::Dumper;
+	use WWW::Rediff::iShare;
+	use Data::Dumper;
 	
-    my $iShare      = WWW::Rediff::iShare->new();
-    my $stream_data = $iShare->search('<SONG NAME>','<STREAM TYPE>');
-    if(ref($stream_data) eq 'ARRAY')
-    {
-		foreach my $song (@{$stream_data})
-		{
-		   print "Song Title    " . $song->{comment}, "\n";
-		   print "Song ID 	    " . $song->{file_id}, "\n";
-		   print "Download path " . $song->{path},    "\n";
+	my $iShare = WWW::Rediff::iShare->new();
+	my $stream_data = $iShare->search( '<SONG NAME>', '<STREAM TYPE>' );
+	if ( ref($stream_data) eq 'ARRAY' ) {
+		foreach my $song ( @{$stream_data} ) {
+			print "Song Title    " . $song->{comment}, "\n";
+			print "Song ID 	    " . $song->{file_id},  "\n";
+			print "Download path " . $song->{path},    "\n";
 		}
-    }else{
+	}
+	else {
 		print $stream_data;
 	}
 

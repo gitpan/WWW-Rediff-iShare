@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               WWW-Rediff-iShare
-version:            0.04
+version:            0.05
 abstract:           get ishare.rediff.com audio and video stream URL and download it to your system
 author:
     - Rakesh Kumar Shardiwal <rakesh@cpan.org>
@@ -14,7 +14,6 @@ requires:
     Data::Dumper:         2.126
     FLV::ToMP3:           0.24
     HTML::TagParser:      0.16
-    LWP::Simple:          5.835
     String::Random:       0.22
     Test::More:           0.96
     Test::Pod::Coverage:  1.08
